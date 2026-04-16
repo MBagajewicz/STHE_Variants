@@ -1,11 +1,10 @@
 #
 #region Titles and Header
-# Nature: Optimization
-# Methodology: Set trimming
+# Nature: Distributed Model with Rita
+# Methodology: Solve System of Equations
 ##################################################################################################################
 # VERSION        DATE            AUTHOR                    DESCRIPTION OF CHANGES MADE
-#   0.0          01-Dec-2024     Mariana Mello              Proposed
-#   0.2          12-May-2025     Mariana Mello             Changed name from 'pd' to 'm_p'
+#   0.0          16-Apr-2026    Miguel Bagajewicz            First draft
 ##################################################################################################################
 #endregion
 
