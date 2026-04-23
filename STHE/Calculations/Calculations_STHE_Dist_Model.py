@@ -1,28 +1,9 @@
-#
-#region Titles and Header
-# Nature: Distributed Model with Rita
-# Methodology: Solve System of Equations
-##################################################################################################################
-# VERSION        DATE            AUTHOR                    DESCRIPTION OF CHANGES MADE
-#   0.0          16-Apr-2026    Miguel Bagajewicz            First draft
-##################################################################################################################
-#endregion
-
-
-#region Import Library
-#from STHE.Calculations import Calculations_STHE_countingtable
 from math import pi
 import numpy as np
-#from scipy.optimize import fsolve
-from scipy.optimize import least_squares
+from scipy.optimize import minimize
 import math
-#endregion
 
-#region Calculations
 N = int(input("N:"))
-
-
-
 
 def STHE_Dist_Model(N):#(Ds, dte, Npt, rp, lay, L):
     m_p =   {
@@ -55,55 +36,33 @@ def STHE_Dist_Model(N):#(Ds, dte, Npt, rp, lay, L):
     # generqate the vectors for the internal temperatures
     # solve system of equations  to obtain Tho, Tco
     UAB=m_p['U']*AB
-    
 
     def LMTD(Tc_out,Tc_in,Th_out,Th_in):
         deltaT1=Th_out-Tc_in
         deltaT2=Th_in-Tc_out
         if deltaT1>0 and deltaT2>0 and abs(deltaT1-deltaT2)>1e-6:
-            lmtd=(deltaT1-deltaT2)/math.log(deltaT1/deltaT2)
+            lmtd=deltaT1-deltaT2/math.log(deltaT1/deltaT2)
             return lmtd
         return 0
 
-
-
+    
     def equations(vars):
         vars_positive=np.abs(vars)
         Th = vars_positive[:N]      #Tho=ThN=Th[N-1]   ThN=Th[N-1]
         Tc = vars_positive[N:]      #Tco=Tc1=Tc[0]     TcN=Tc[N-1]
-
         eqs = []
 
-
-       ########################################################################################
-       # model #1
-        #eq1 = m_p['mc']*m_p['Cpc']*(Tc[N-1]-m_p['Tci']) - m_p['mh']*m_p['Cph']*(Th[N-2]-Th[N-1])
-        #eq2 = m_p['mc']*m_p['Cpc']*(Tc[N-1]-m_p['Tci']) - UAB*(Th[N-1]-Tc[N-1])
-        #eq5 = m_p['mc']*m_p['Cpc']*(Tc[1]-Tc[0]) - m_p['mh']*m_p['Cph']*(m_p['Thi']-Th[0])
-        #eq6 = m_p['mc']*m_p['Cpc']*(Tc[1]-Tc[0]) - UAB*(Th[0]-Tc[0])
-       # end of model #1 
-       #########################################################################################
-      
         eq1 = m_p['mc']*m_p['Cpc']*(Tc[N-1]-m_p['Tci']) - m_p['mh']*m_p['Cph']*(Th[N-2]-Th[N-1])
         eq2 = m_p['mc']*m_p['Cpc']*(Tc[N-1]-m_p['Tci']) - UAB*LMTD(Tc[N-1],m_p['Tci'],Th[N-1],Th[N-2])
         eq5 = m_p['mc']*m_p['Cpc']*(Tc[0]-Tc[1]) - m_p['mh']*m_p['Cph']*(m_p['Thi']-Th[0])
-        eq6 = m_p['mc']*m_p['Cpc']*(Tc[0]-Tc[1]) - UAB*LMTD(Tc[0],Tc[1],Th[0],m_p['Thi'])
-        
+        eq6 = m_p['mc']*m_p['Cpc']*(Tc[0]-Tc[1]) - UAB*LMTD(Tc[0],Tc[1],Th[0],m_p['Thi'])   
+
         eqs.append(eq1)
         eqs.append(eq2)
         eqs.append(eq5)
-        eqs.append(eq6)
-
-
+        eqs.append(eq6) 
 
         for i in range(2,N):
-        ########################################################################################
-        # model #1
-            #eq3 = m_p['mc']*m_p['Cpc']*(Tc[i-1]-Tc[i]) - m_p['mh']*m_p['Cph']*(Th[i-2]-Th[i-1])
-            #eq4 = m_p['mc']*m_p['Cpc']*(Tc[i-1]-Tc[i]) - UAB*(Th[i-1]-Tc[i-1])
-
-        # end of model #1 
-        ########################################################################################
 
             eq3 = m_p['mc']*m_p['Cpc']*(Tc[i-1]-Tc[i]) - m_p['mh']*m_p['Cph']*(Th[i-2]-Th[i-1])
             eq4 = m_p['mc']*m_p['Cpc']*(Tc[i-1]-Tc[i]) - UAB*LMTD(Tc[i-1],Tc[i],Th[i-1],Th[i-2])
@@ -111,23 +70,32 @@ def STHE_Dist_Model(N):#(Ds, dte, Npt, rp, lay, L):
             eqs.append(eq3)
             eqs.append(eq4)
 
-            eqs.append(1e6 * max(Th[i-1] - Th[i-2] + 1e-6, 0)) #the temperature is decreasing
-            eqs.append(1e6 * max(Th[N-1] - Th[N-2] + 1e-6, 0))
-            eqs.append(1e6 * max(Tc[i-1] - Tc[i-2] + 1e-6, 0))
-            eqs.append(1e6 * max(Tc[N-1] - Tc[N-2] + 1e-6, 0))
-
-            #eqs.append(1e10 * max(Tc[i-1]- Th[i-2] + 1e-6, 0)) # i the same area, Tc must be lower than Th
-
-         
-
-
         return eqs
+
+    def inequalities(vars):
+        vars_positive=np.abs(vars)
+        Th = vars_positive[:N]      #Tho=ThN=Th[N-1]   ThN=Th[N-1]
+        Tc = vars_positive[N:]      #Tco=Tc1=Tc[0]     TcN=Tc[N-1]   
+
+        ineq=[]
+        ineq.append(Tc[N-1] - Tc[N-2])
+        ineq.append(Th[N-1] - Th[N-2])
+        
+        for i in range(2,N):
+            ineq.append(Th[i-1]-Th[i])
+            ineq.append(Tc[i-1]-Tc[i])
+
+        return ineq
     
-    vars = np.full(2*N,66)
-    #lb=[m_p['Tci']]*(2*N)
-    #ub=[m_p['Thi']]*(2*N)
-    #,bounds=(lb,ub)
-    result = least_squares(equations,vars)
+    def objective(vars):
+        return 0
+    
+    constraints=[{'type':'eq','fun':equations},{'type':'ineq','fun':inequalities}]
+
+    vars = np.ones(2*N)*55
+
+    result=minimize(objective,vars,constraints=constraints,method="SLSQP")
+
     return result.x
 
 T=STHE_Dist_Model(N)   #T includes Th1 Th2 ... ThN Tc1 Tc2...TcN
