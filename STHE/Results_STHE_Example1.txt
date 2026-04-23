@@ -5,9 +5,9 @@ DeltaTmin does not exist in the Model_Parameters. A default value of 5 °C is ad
 
 ********** Normal Set Trimming running **********
 Set Trimming successful - The candidates solution set is not empty
-Building initial set time:  0.01189 seconds
+Building initial set time:  0.01244 seconds
 
-Primordial Set Trimming time:  0.01155 seconds
+Primordial Set Trimming time:  0.01479 seconds
 
 
 ************ Initial Set generated from Primordial Set ************
@@ -25,5 +25,5 @@ Candidate set cardinality after each trimming [61560, 39040, 38560, 1486, 1486, 
 Elapsed time for Equipment1 "STHE": 0.01 seconds 
 
 OF Solution total ($/year) 8247.515601834286
-Total time elapsed: 0.04729 seconds
+Total time elapsed: 0.05206 seconds
 

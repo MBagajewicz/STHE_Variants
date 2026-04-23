@@ -69,25 +69,25 @@ def STHE_Dist_Model(N):#(Ds, dte, Npt, rp, lay, L):
 
     def equations(vars):
         vars_positive=np.abs(vars)
-        Th = vars_positive[:N]      #Tho=ThN=Th[N-1]   ThN=Th[N-1]
-        Tc = vars_positive[N:]      #Tco=Tc1=Tc[0]     TcN=Tc[N-1]
-
+        Th = vars_positive[:N]      #Tho=Th[N]  
+        Tc = vars_positive[N:]      #Tco=Tc[0]     
+        
         eqs = []
 
 
        ########################################################################################
        # model #1
-        #eq1 = m_p['mc']*m_p['Cpc']*(Tc[N-1]-m_p['Tci']) - m_p['mh']*m_p['Cph']*(Th[N-2]-Th[N-1])
-        #eq2 = m_p['mc']*m_p['Cpc']*(Tc[N-1]-m_p['Tci']) - UAB*(Th[N-1]-Tc[N-1])
-        #eq5 = m_p['mc']*m_p['Cpc']*(Tc[1]-Tc[0]) - m_p['mh']*m_p['Cph']*(m_p['Thi']-Th[0])
-        #eq6 = m_p['mc']*m_p['Cpc']*(Tc[1]-Tc[0]) - UAB*(Th[0]-Tc[0])
+        #eq1 = m_p['mc']*m_p['Cpc']*(Tc[N]-m_p['Tci']) - m_p['mh']*m_p['Cph']*(Th[N-1]-Th[N])
+        #eq2 = m_p['mc']*m_p['Cpc']*(Tc[N]-m_p['Tci']) - UAB*(Th[N]-Tc[N])
+        #eq5 = m_p['mc']*m_p['Cpc']*(Tc[1]-Tc[0]]) - m_p['mh']*m_p['Cph']*(m_p['Thi']-Th[1])
+        #eq6 = m_p['mc']*m_p['Cpc']*(Tc[1]-Tc[0]]) - UAB*(Th[1]-Tc[0])
        # end of model #1 
        #########################################################################################
       
-        eq1 = m_p['mc']*m_p['Cpc']*(Tc[N-1]-m_p['Tci']) - m_p['mh']*m_p['Cph']*(Th[N-2]-Th[N-1])
-        eq2 = m_p['mc']*m_p['Cpc']*(Tc[N-1]-m_p['Tci']) - UAB*LMTD(Tc[N-1],m_p['Tci'],Th[N-1],Th[N-2])
-        eq5 = m_p['mc']*m_p['Cpc']*(Tc[0]-Tc[1]) - m_p['mh']*m_p['Cph']*(m_p['Thi']-Th[0])
-        eq6 = m_p['mc']*m_p['Cpc']*(Tc[0]-Tc[1]) - UAB*LMTD(Tc[0],Tc[1],Th[0],m_p['Thi'])
+        eq1 = m_p['mc']*m_p['Cpc']*(Tc[N]-m_p['Tci']) - m_p['mh']*m_p['Cph']*(Th[N-1]-Th[N])
+        eq2 = m_p['mc']*m_p['Cpc']*(Tc[N]-m_p['Tci']) - UAB*LMTD(Tc[N],m_p['Tci'],Th[N],Th[N-1])
+        eq5 = m_p['mc']*m_p['Cpc']*(Tc[0]-Tc[1]) - m_p['mh']*m_p['Cph']*(m_p['Thi']-Th[1])
+        eq6 = m_p['mc']*m_p['Cpc']*(Tc[0]-Tc[1]) - UAB*LMTD(Tc[1],Tc[0],Th[1],m_p['Thi'])
         
         eqs.append(eq1)
         eqs.append(eq2)
@@ -96,25 +96,25 @@ def STHE_Dist_Model(N):#(Ds, dte, Npt, rp, lay, L):
 
 
 
-        for i in range(2,N):
+        for i in range(2,N-1):
         ########################################################################################
         # model #1
-            #eq3 = m_p['mc']*m_p['Cpc']*(Tc[i-1]-Tc[i]) - m_p['mh']*m_p['Cph']*(Th[i-2]-Th[i-1])
-            #eq4 = m_p['mc']*m_p['Cpc']*(Tc[i-1]-Tc[i]) - UAB*(Th[i-1]-Tc[i-1])
+            #eq3 = m_p['mc']*m_p['Cpc']*(Tc[i]-Tc[i+1]) - m_p['mh']*m_p['Cph']*(Th[i-1]-Th[i])
+            #eq4 = m_p['mc']*m_p['Cpc']*(Tc[i]-Tc[i+1]) - UAB*(Th[i]-Tc[i])
 
         # end of model #1 
         ########################################################################################
 
-            eq3 = m_p['mc']*m_p['Cpc']*(Tc[i-1]-Tc[i]) - m_p['mh']*m_p['Cph']*(Th[i-2]-Th[i-1])
-            eq4 = m_p['mc']*m_p['Cpc']*(Tc[i-1]-Tc[i]) - UAB*LMTD(Tc[i-1],Tc[i],Th[i-1],Th[i-2])
+            eq3 = m_p['mc']*m_p['Cpc']*(Tc[i]-Tc[i+1]) - m_p['mh']*m_p['Cph']*(Th[i-1]-Th[i])
+            eq4 = m_p['mc']*m_p['Cpc']*(Tc[i]-Tc[i+1]) - UAB*LMTD(Tc[i],Tc[i-1],Th[i],Th[i-1])
 
             eqs.append(eq3)
             eqs.append(eq4)
 
-            eqs.append(1e6 * max(Th[i-1] - Th[i-2] + 1e-6, 0)) #the temperature is decreasing
-            eqs.append(1e6 * max(Th[N-1] - Th[N-2] + 1e-6, 0))
-            eqs.append(1e6 * max(Tc[i-1] - Tc[i-2] + 1e-6, 0))
-            eqs.append(1e6 * max(Tc[N-1] - Tc[N-2] + 1e-6, 0))
+            eqs.append(1e6 * max(Th[i] - Th[i-1] + 1e-6, 0)) #the temperature is decreasing
+            #eqs.append(1e6 * max(Th[N] - Th[N-1] + 1e-6, 0))
+            eqs.append(1e6 * max(Tc[i] - Tc[i-1] + 1e-6, 0))
+            #eqs.append(1e6 * max(Tc[N] - Tc[N-1] + 1e-6, 0))
 
             #eqs.append(1e10 * max(Tc[i-1]- Th[i-2] + 1e-6, 0)) # i the same area, Tc must be lower than Th
 
