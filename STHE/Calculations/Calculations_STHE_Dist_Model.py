@@ -5,21 +5,23 @@
 ##################################################################################################################
 # VERSION        DATE            AUTHOR                    DESCRIPTION OF CHANGES MADE
 #   0.0          16-Apr-2026    Miguel Bagajewicz            First draft
+#   0.1          29-Apr-2026    Rita                         Second draft
 ##################################################################################################################
 #endregion
 
 
 #region Import Library
 #from STHE.Calculations import Calculations_STHE_countingtable
+import math
 from math import pi
 import numpy as np
 from scipy.optimize import fsolve
-import math
-#endregion
+
+#endregion5
 
 #region Calculations
 N = int(input("N:"))
-
+Model = int(input("Model:"))
 
 def LMTD(Tc_out,Tc_in,Th_out,Th_in):
     deltaT1=Th_out-Tc_in
@@ -33,7 +35,7 @@ def LMTD(Tc_out,Tc_in,Th_out,Th_in):
 
 
 
-def STHE_Dist_Model(N):#(Ds, dte, Npt, rp, lay, L):
+def STHE_Dist_Model(N,Model):#(Ds, dte, Npt, rp, lay, L):
     m_p =   {
                     # Hot stream
                     'mh': 20,          # Flow rate (kg*s**-1)
@@ -84,25 +86,49 @@ def STHE_Dist_Model(N):#(Ds, dte, Npt, rp, lay, L):
 
         Th_out=Th[N]
         Tc_out=Tc[1]
+        
 
-        eq1 = m_p['mc']*m_p['Cpc']*(Tc[N]-Tc_in) - m_p['mh']*m_p['Cph']*(Th[N-1]-Th_out)
-        eq2 = m_p['mc']*m_p['Cpc']*(Tc[N]-Tc_in) - UAB*LMTD(Tc[N],Tc_in,Th_out,Th[N-1])
-        eq5 = m_p['mc']*m_p['Cpc']*(Tc_out-Tc[2]) - m_p['mh']*m_p['Cph']*(Th_in-Th[1])
-        eq6 = m_p['mc']*m_p['Cpc']*(Tc_out-Tc[2]) - UAB*LMTD(Tc_out,Tc[2],Th[1],Th_in)
+        if Model == 1:
+
+            eq1 = m_p['mc']*m_p['Cpc']*(Tc[N]-Tc_in) - m_p['mh']*m_p['Cph']*(Th[N-1]-Th_out)
+            eq2 = m_p['mc']*m_p['Cpc']*(Tc[N]-Tc_in) - UAB*LMTD(Tc[N],Tc_in,Th_out,Th[N-1])
+            eq5 = m_p['mc']*m_p['Cpc']*(Tc_out-Tc[2]) - m_p['mh']*m_p['Cph']*(Th_in-Th[1])
+            eq6 = m_p['mc']*m_p['Cpc']*(Tc_out-Tc[2]) - UAB*LMTD(Tc_out,Tc[2],Th[1],Th_in)
 
         
-        eqs.append(eq1)
-        eqs.append(eq2)
-        eqs.append(eq5)
-        eqs.append(eq6)
+            eqs.append(eq1)
+            eqs.append(eq2)
+            eqs.append(eq5)
+            eqs.append(eq6)
 
-        for i in range(2,N):
+            for i in range(2,N):
 
-            eq3 = m_p['mc']*m_p['Cpc']*(Tc[i]-Tc[i+1]) - m_p['mh']*m_p['Cph']*(Th[i-1]-Th[i])
-            eq4 = m_p['mc']*m_p['Cpc']*(Tc[i]-Tc[i+1]) - UAB*LMTD(Tc[i],Tc[i+1],Th[i],Th[i-1])
+                eq3 = m_p['mc']*m_p['Cpc']*(Tc[i]-Tc[i+1]) - m_p['mh']*m_p['Cph']*(Th[i-1]-Th[i])
+                eq4 = m_p['mc']*m_p['Cpc']*(Tc[i]-Tc[i+1]) - UAB*LMTD(Tc[i],Tc[i+1],Th[i],Th[i-1])
 
-            eqs.append(eq3)
-            eqs.append(eq4)
+                eqs.append(eq3)
+                eqs.append(eq4)
+
+        else:
+
+            eq1 = m_p['mc']*m_p['Cpc']*(Tc[N]-Tc_in) - m_p['mh']*m_p['Cph']*(Th[N-1]-Th_out)
+            eq2 = m_p['mc']*m_p['Cpc']*(Tc[N]-Tc_in) - UAB*((Th_out-Tc_in)+(Th[N-1]-Tc[N]))/2
+            eq5 = m_p['mc']*m_p['Cpc']*(Tc_out-Tc[2]) - m_p['mh']*m_p['Cph']*(Th_in-Th[1])
+            eq6 = m_p['mc']*m_p['Cpc']*(Tc_out-Tc[2]) - UAB*((Th_in-Tc_out)+(Th[1]-Tc[2]))/2
+
+        
+            eqs.append(eq1)
+            eqs.append(eq2)
+            eqs.append(eq5)
+            eqs.append(eq6)
+
+            for i in range(2,N):
+
+                eq3 = m_p['mc']*m_p['Cpc']*(Tc[i]-Tc[i+1]) - m_p['mh']*m_p['Cph']*(Th[i-1]-Th[i])
+                eq4 = m_p['mc']*m_p['Cpc']*(Tc[i]-Tc[i+1]) - UAB*((Th[i]-Tc[i+1])+(Th[i-1]-Tc[i]))/2
+
+                eqs.append(eq3)
+                eqs.append(eq4)
 
         return eqs
     
@@ -113,7 +139,7 @@ def STHE_Dist_Model(N):#(Ds, dte, Npt, rp, lay, L):
     result = fsolve(equations,vars)
     return result
 
-T=STHE_Dist_Model(N)   #T includes Th1 Th2 ... ThN Tc1 Tc2...TcN
+T=STHE_Dist_Model(N,Model)   #T includes Th1 Th2 ... ThN Tc1 Tc2...TcN
 Th_sol = T[:N+1]
 Tc_sol = T[N+1:]
 
